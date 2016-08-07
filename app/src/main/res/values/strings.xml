@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">WhoCallsYa</string>
     <string name="content">Hello</string>
+    <string name="bubble_trash">Bubble Trash</string>
+    <string name="bubble">Bubble</string>
+    <string name="to_browser">to_browser</string>
 </resources>

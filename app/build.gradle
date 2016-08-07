@@ -15,7 +15,8 @@ android {
         applicationId 'ru.yandex.whocallsya'
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
-        versionCode versions.code // Notice that you may want to use BUILD_NUMBER from CI in real project with own CI.
+        versionCode versions.code
+        // Notice that you may want to use BUILD_NUMBER from CI in real project with own CI.
         versionName versions.name
 
         // Make generated apks contain version name and code.
@@ -97,7 +98,9 @@ dependencies {
     apt libraries.butterKnifeCompiler
 
     compile libraries.timber
-
+    compile libraries.rxandroid
+    compile libraries.rxjava
+    compile libraries.jsoup
     // Developer tools (Developer Settings)
     compile libraries.stetho
     compile libraries.leakCanary
