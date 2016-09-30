@@ -13,8 +13,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+import com.yandex.metrica.YandexMetrica;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.bubble.BubbleBaseLayout;
@@ -31,7 +36,7 @@ import static android.widget.ListPopupWindow.WRAP_CONTENT;
 
 public class CockyBubblesService extends Service {
     public static final String PHONE_NUMBER = "PHONE_NUMBER";
-    private List<BubbleLayout> bubbles = new ArrayList<>();
+    WeakHashMap<BubbleBaseLayout, String> bubbles = new WeakHashMap<>();
     private BubbleTrashLayout bubblesTrash;
     private WindowManager windowManager;
     private BubblesLayoutCoordinator layoutCoordinator;
@@ -52,7 +57,8 @@ public class CockyBubblesService extends Service {
             return super.onStartCommand(intent, flags, startId);
         }
         addBubble(phoneNumber, 60, 20);
-        return super.onStartCommand(intent, flags, startId);
+        return START_NOT_STICKY;
+//        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -114,8 +120,16 @@ public class CockyBubblesService extends Service {
         bubbleView.setWindowManager(getWindowManager());
         bubbleView.setViewParams(layoutParams);
         bubbleView.setLayoutCoordinator(layoutCoordinator);
-        bubbles.add(bubbleView);
+        bubbles.put(bubbleView, number);
         addViewToWindow(bubbleView);
+        Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                .putCustomAttribute("Action", "addBubble")
+                .putCustomAttribute("Number", number)
+        );
+        Map<String, Object> eventAttributes = new HashMap<>();
+        eventAttributes.put("Action", "addBubble");
+        eventAttributes.put("Number", number);
+        YandexMetrica.reportEvent("BubbleService", eventAttributes);
     }
 
     public void addTrash(int trashLayoutResourceId) {
@@ -162,14 +176,60 @@ public class CockyBubblesService extends Service {
     public void removeBubble(BubbleLayout bubble) {
         new Handler(Looper.getMainLooper()).post(() -> {
             getWindowManager().removeView(bubble);
-            for (BubbleLayout cachedBubble : bubbles) {
-                if (cachedBubble == bubble) {
-                    bubble.notifyBubbleRemoved();
-                    bubbles.remove(cachedBubble);
-                    break;
-                }
+            if (bubbles.containsKey(bubble)) {
+                bubble.notifyBubbleRemoved();
+                Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                        .putCustomAttribute("Action", "removeBubble")
+                        .putCustomAttribute("Number", bubbles.get(bubble))
+                );
+                Map<String, Object> eventAttributes = new HashMap<>();
+                eventAttributes.put("Action", "removeBubble");
+                eventAttributes.put("Number", bubbles.get(bubble));
+                YandexMetrica.reportEvent("BubbleService", eventAttributes);
+                bubbles.remove(bubble);
             }
         });
+    }
+
+    @Override
+    public void onLowMemory() {
+        Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                .putCustomAttribute("SystemAction", "LowMemory"));
+        Map<String, Object> eventAttributes = new HashMap<>();
+        eventAttributes.put("SystemAction", "LowMemory");
+        YandexMetrica.reportEvent("BubbleService", eventAttributes);
+        super.onLowMemory();
+    }
+
+    @Override
+    public void onDestroy() {
+        Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                .putCustomAttribute("SystemAction", "onDestroy"));
+        Map<String, Object> eventAttributes = new HashMap<>();
+        eventAttributes.put("SystemAction", "onDestroy");
+        YandexMetrica.reportEvent("BubbleService", eventAttributes);
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                .putCustomAttribute("SystemAction", "onUnbind"));
+        Map<String, Object> eventAttributes = new HashMap<>();
+        eventAttributes.put("SystemAction", "onUnbind");
+        YandexMetrica.reportEvent("BubbleService", eventAttributes);
+        return super.onUnbind(intent);
+    }
+
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Answers.getInstance().logCustom(new CustomEvent("BubbleService")
+                .putCustomAttribute("SystemAction", "onTaskRemoved"));
+        Map<String, Object> eventAttributes = new HashMap<>();
+        eventAttributes.put("SystemAction", "onTaskRemoved ");
+        YandexMetrica.reportEvent("BubbleService", eventAttributes);
+        super.onTaskRemoved(rootIntent);
     }
 }
 

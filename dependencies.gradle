@@ -4,10 +4,10 @@ ext.versions = [
 
         minSdk                       : 16,
         targetSdk                    : 22,
-        compileSdk                   : 23,
-        buildTools                   : '23.0.3',
+        compileSdk                   : 24,
+        buildTools                   : '24.0.2',
 
-        androidGradlePlugin          : '2.2.0-alpha7',
+        androidGradlePlugin          : '2.2.0',
         aptGradlePlugin              : '1.8',
         retrolambdaGradlePlugin      : '3.2.5',
         lombokGradlePlugin           : '0.2.3.a2',
