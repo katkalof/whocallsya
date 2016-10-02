@@ -14,7 +14,7 @@ import android.view.WindowManager;
 
 import ru.yandex.whocallsya.R;
 
-public class BubbleLayout extends BubbleBaseLayout{
+public class BubbleLayout extends BubbleBaseLayout {
     private float initialTouchX;
     private float initialTouchY;
     private int initialX;

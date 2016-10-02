@@ -1,18 +1,24 @@
 package ru.yandex.whocallsya.ui.view;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.List;
 
 import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.service.CockyBubblesService;
 import ru.yandex.whocallsya.service.SearchAsyncTask;
+import ru.yandex.whocallsya.ui.adapter.SearchAdapter;
+import ru.yandex.whocallsya.ui.adapter.SearchItemDivider;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static android.content.Context.WINDOW_SERVICE;
@@ -28,9 +34,7 @@ public class InformingLayout {
     final private WindowManager windowManager;
     final private CockyBubblesService service;
     final private ViewGroup windowLayout;
-    final private TextView infoTitle;
-    final private ImageView infoIcon;
-    final private TextView infoDesc;
+    final private RecyclerView recyclerView;
     private boolean showed = false;
 
 
@@ -43,9 +47,7 @@ public class InformingLayout {
 
         TextView phoneNumber = (TextView) windowLayout.findViewById(R.id.phone_number);
         phoneNumber.setText(phone);
-        infoTitle = (TextView) windowLayout.findViewById(R.id.info_title);
-        infoIcon = (ImageView) windowLayout.findViewById(R.id.info_to_browser);
-        infoDesc = (TextView) windowLayout.findViewById(R.id.info_desc);
+        recyclerView = (RecyclerView) windowLayout.findViewById(R.id.recycler_view_search);
     }
 
     public void show() {
@@ -58,6 +60,7 @@ public class InformingLayout {
                     TRANSLUCENT
             );
             windowParams.gravity = Gravity.TOP;
+            windowParams.y = dpToPx(8);
             windowManager.addView(windowLayout, windowParams);
             showed = true;
         }
@@ -71,19 +74,23 @@ public class InformingLayout {
     }
 
 
-    public void setPreview(final SearchAsyncTask.Response response) {
-        infoTitle.setText(response.getTitle());
-        infoIcon.setOnClickListener(view -> {
-            Intent intent = new Intent(ACTION_VIEW, Uri.parse(response.getLink()));
+    public void setPreview(final List<SearchAsyncTask.Response> responses) {
+        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        recyclerView.addItemDecoration(new SearchItemDivider(recyclerView.getContext()));
+        recyclerView.setAdapter(new SearchAdapter(responses, position -> {
+            Intent intent = new Intent(ACTION_VIEW, Uri.parse(responses.get(position).getUrl()));
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             service.startActivity(intent);
-        });
-        infoDesc.setText(response.getDescription());
+            //TODO не выйдет, надо же еще кнопку поменять. нужны колбеки в сервис
+            unShow();
+        }));
     }
 
     public boolean isShowed() {
         return showed;
     }
 
-
+    private int dpToPx(float dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    }
 }

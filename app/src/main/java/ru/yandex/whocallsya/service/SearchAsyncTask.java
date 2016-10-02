@@ -8,6 +8,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import ru.yandex.whocallsya.ui.view.InformingLayout;
@@ -54,7 +56,18 @@ public class SearchAsyncTask extends AsyncTask<String, Void, SearchAsyncTask.Res
 
     @Override
     protected void onPostExecute(Response response) {
-        informingLayout.setPreview(response);
+        //TODO get list from response at once
+        List<Response> responses = new ArrayList<>();
+        Response r = new Response("Владимир Каткалов (katkalof) — Мой круг", "https://moikrug.ru/katkalof", "+79992114504. Дом.");
+        responses.add(r);
+        r = new Response("Владимир Каткалов (katkalof) — Мой круг", "https://moikrug.ru/katkalof", "+79992114504. Дом.");
+        responses.add(r);
+        r = new Response("Владимир Каткалов (katkalof) — Мой круг", "https://moikrug.ru/katkalof", "+79992114504. Дом.");
+        responses.add(r);
+        r = new Response("Владимир Каткалов (katkalof) — Мой круг", "https://moikrug.ru/katkalof", "+79992114504. Дом.");
+        responses.add(r);
+
+        informingLayout.setPreview(responses);
     }
 
 
@@ -73,7 +86,7 @@ public class SearchAsyncTask extends AsyncTask<String, Void, SearchAsyncTask.Res
             return title;
         }
 
-        public String getLink() {
+        public String getUrl() {
             return link;
         }
 

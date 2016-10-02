@@ -2,11 +2,13 @@ package ru.yandex.whocallsya.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,9 +58,14 @@ public class CockyBubblesService extends Service {
         } else {
             return super.onStartCommand(intent, flags, startId);
         }
-        addBubble(phoneNumber, 60, 20);
+        DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
+        // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
+        int x = Math.round((180 - 56 / 2) * dM.density);
+        int y = Math.round((320 - 56 / 2) * dM.density);
+        addBubble(phoneNumber, x, y);
+
         return START_NOT_STICKY;
-//        return super.onStartCommand(intent, flags, startId);
+        //        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -80,9 +87,10 @@ public class CockyBubblesService extends Service {
         return windowManager;
     }
 
-    public void addBubble(String number, int x, int y) {
+    public void addBubble(String number, int xBubbleCenter, int yBubbleCenter) {
         BubbleLayout bubbleView = (BubbleLayout) LayoutInflater.from(this).inflate(R.layout.bubble_main, null);
         final String searchString = "https://yandex.ru/search/?text=" + number;
+
         InformingLayout informingLayout = new InformingLayout(this, number);
         new SearchAsyncTask(informingLayout).execute(searchString);
         bubbleView.setOnBubbleRemoveListener(bubble -> informingLayout.unShow());
@@ -96,27 +104,18 @@ public class CockyBubblesService extends Service {
                 informingLayout.show();
             }
             switch (tag) {
-                case R.drawable.ic_like:
-                    v.setImageResource(R.drawable.ic_dislike);
-                    v.setTag(R.drawable.ic_dislike);
+                case R.drawable.ic_close:
+                    v.setImageResource(R.drawable.ic_unknown);
+                    v.setTag(R.drawable.ic_unknown);
                     break;
-                case R.drawable.ic_dislike:
-                    v.setImageResource(R.drawable.ic_fuck);
-                    v.setTag(R.drawable.ic_fuck);
-                    break;
-                case R.drawable.ic_fuck:
-                    v.setImageResource(R.drawable.ic_main);
-                    v.setTag(R.drawable.ic_main);
-                    break;
-                case R.drawable.ic_main:
+                case R.drawable.ic_unknown:
                 default:
-                    v.setImageResource(R.drawable.ic_like);
-                    v.setTag(R.drawable.ic_like);
+                    v.setImageResource(R.drawable.ic_close);
+                    v.setTag(R.drawable.ic_close);
             }
         });
-
-        bubbleView.setShouldStickToWall(true);
-        WindowManager.LayoutParams layoutParams = buildLayoutParamsForBubble(x, y);
+        bubbleView.setShouldStickToWall(false);
+        WindowManager.LayoutParams layoutParams = buildLayoutParamsForBubble(xBubbleCenter, yBubbleCenter);
         bubbleView.setWindowManager(getWindowManager());
         bubbleView.setViewParams(layoutParams);
         bubbleView.setLayoutCoordinator(layoutCoordinator);
@@ -231,5 +230,5 @@ public class CockyBubblesService extends Service {
         YandexMetrica.reportEvent("BubbleService", eventAttributes);
         super.onTaskRemoved(rootIntent);
     }
-}
 
+}
