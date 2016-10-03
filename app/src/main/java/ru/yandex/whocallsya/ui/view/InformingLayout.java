@@ -3,8 +3,10 @@ package ru.yandex.whocallsya.ui.view;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.PhoneNumberUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -38,7 +40,7 @@ public class InformingLayout {
     private boolean showed = false;
 
 
-    public InformingLayout(final CockyBubblesService service, String phone) {
+    public InformingLayout(final CockyBubblesService service, String phone, String countryCode) {
         this.service = service;
         windowManager = (WindowManager) service.getSystemService(WINDOW_SERVICE);
 
@@ -46,6 +48,11 @@ public class InformingLayout {
         windowLayout = (ViewGroup) layoutInflater.inflate(R.layout.info_layout, null);
 
         TextView phoneNumber = (TextView) windowLayout.findViewById(R.id.phone_number);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            phone = PhoneNumberUtils.formatNumber(phone, countryCode);
+        } else {
+            phone = PhoneNumberUtils.formatNumber(phone);
+        }
         phoneNumber.setText(phone);
         recyclerView = (RecyclerView) windowLayout.findViewById(R.id.recycler_view_search);
     }

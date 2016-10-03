@@ -35,14 +35,14 @@ public class SearchAsyncTask extends AsyncTask<String, Void, SearchAsyncTask.Res
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
                     .get();
         } catch (IOException e) {
-            Log.e("SearchAsyncTask", "something wrong in get!");
+//            Log.e("SearchAsyncTask", "something wrong in get!");
             return new Response("Don't have internet response.", searchLink, "Tap icon and continue in your browser");
         }
         Elements result = doc.getElementsByClass("serp-item__title-link");
         if (result.isEmpty()) {
-            Log.e("SearchAsyncTask", searchLink);
-            Log.e("SearchAsyncTask", "Ban!");
-            Log.e("SearchAsyncTask", doc.toString());
+//            Log.e("SearchAsyncTask", searchLink);
+//            Log.e("SearchAsyncTask", "Ban!");
+//            Log.e("SearchAsyncTask", doc.toString());
             return new Response("You was baned in yandex!", searchLink, "Tap and and continue in your browser");
         }
         String title = result.text();

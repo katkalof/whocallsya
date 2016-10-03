@@ -1,19 +1,28 @@
 package ru.yandex.whocallsya.service;
 
+import android.Manifest;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.telephony.PhoneNumberUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -55,17 +64,18 @@ public class CockyBubblesService extends Service {
         String phoneNumber;
         if (intent.getExtras().containsKey(PHONE_NUMBER)) {
             phoneNumber = intent.getStringExtra(PHONE_NUMBER);
-        } else {
-            return super.onStartCommand(intent, flags, startId);
-        }
-        DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
-        // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
-        int x = Math.round((180 - 56 / 2) * dM.density);
-        int y = Math.round((320 - 56 / 2) * dM.density);
-        addBubble(phoneNumber, x, y);
+            if (unknownPhoneNumber(phoneNumber)) {
+                DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
+                // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
+                int x = Math.round((180 - 56 / 2) * dM.density);
+                int y = Math.round((320 - 56 / 2) * dM.density);
 
-        return START_NOT_STICKY;
-        //        return super.onStartCommand(intent, flags, startId);
+                addBubble(phoneNumber, x, y);
+
+                return START_NOT_STICKY;
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -91,7 +101,7 @@ public class CockyBubblesService extends Service {
         BubbleLayout bubbleView = (BubbleLayout) LayoutInflater.from(this).inflate(R.layout.bubble_main, null);
         final String searchString = "https://yandex.ru/search/?text=" + number;
 
-        InformingLayout informingLayout = new InformingLayout(this, number);
+        InformingLayout informingLayout = new InformingLayout(this, number, getCurrentCountryCode());
         new SearchAsyncTask(informingLayout).execute(searchString);
         bubbleView.setOnBubbleRemoveListener(bubble -> informingLayout.unShow());
         bubbleView.setOnBubbleClickListener(bubble -> {
@@ -190,6 +200,56 @@ public class CockyBubblesService extends Service {
         });
     }
 
+
+    private boolean unknownPhoneNumber(String incomingPhoneNumber) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Для правильной работы приложения АОН необходимо разрешить" +
+                    " доступ к Вашей телефонной книге", Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        ContentResolver cr = getContentResolver();
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null);
+
+        if (cur != null && cur.getCount() > 0) {
+            while (cur.moveToNext()) {
+                String id = cur.getString(
+                        cur.getColumnIndex(ContactsContract.Contacts._ID));
+                if (cur.getInt(cur.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
+                    if (pCur != null) {
+                        while (pCur.moveToNext()) {
+                            String phoneNo = pCur.getString(pCur.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            if (PhoneNumberUtils.compare(phoneNo, incomingPhoneNumber)) {
+                                cur.close();
+                                pCur.close();
+                                return false;
+                            }
+                        }
+                        pCur.close();
+                    }
+                }
+            }
+            cur.close();
+        }
+        return true;
+    }
+
+    private String getCurrentCountryCode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return getResources().getConfiguration().getLocales().get(0).getCountry();
+        } else {
+            return getResources().getConfiguration().locale.getCountry();
+        }
+    }
+
     @Override
     public void onLowMemory() {
         Answers.getInstance().logCustom(new CustomEvent("BubbleService")
@@ -219,7 +279,6 @@ public class CockyBubblesService extends Service {
         YandexMetrica.reportEvent("BubbleService", eventAttributes);
         return super.onUnbind(intent);
     }
-
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
