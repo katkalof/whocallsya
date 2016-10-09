@@ -49,6 +49,7 @@ public class CockyBubblesService extends Service {
     public static final String PHONE_NUMBER = "PHONE_NUMBER";
     WeakHashMap<BubbleBaseLayout, String> bubbles = new WeakHashMap<>();
     private BubbleTrashLayout bubblesTrash;
+    private InformingLayout infoLayout;
     private WindowManager windowManager;
     private BubblesLayoutCoordinator layoutCoordinator;
 
@@ -57,7 +58,6 @@ public class CockyBubblesService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -83,6 +83,7 @@ public class CockyBubblesService extends Service {
     public void onCreate() {
         super.onCreate();
         addTrash(R.layout.bubble_trash);
+        addInfoLayout();
         layoutCoordinator = new BubblesLayoutCoordinator.Builder(this)
                 .setWindowManager(getWindowManager())
                 .setTrashView(bubblesTrash)
@@ -152,6 +153,9 @@ public class CockyBubblesService extends Service {
         }
     }
 
+    public void addInfoLayout() {
+
+    }
 
     public void addViewToWindow(final BubbleBaseLayout view) {
         new Handler(Looper.getMainLooper()).post(() -> getWindowManager().addView(view, view.getViewParams()));
@@ -197,9 +201,11 @@ public class CockyBubblesService extends Service {
                 YandexMetrica.reportEvent("BubbleService", eventAttributes);
                 bubbles.remove(bubble);
             }
+            if (bubbles.isEmpty()) {
+                stopSelf();
+            }
         });
     }
-
 
     private boolean unknownPhoneNumber(String incomingPhoneNumber) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
