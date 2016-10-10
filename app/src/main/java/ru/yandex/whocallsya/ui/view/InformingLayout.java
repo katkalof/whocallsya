@@ -1,103 +1,103 @@
 package ru.yandex.whocallsya.ui.view;
 
-import android.content.Intent;
-import android.content.res.Resources;
-import android.net.Uri;
+import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.PhoneNumberUtils;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.List;
 
 import ru.yandex.whocallsya.R;
-import ru.yandex.whocallsya.service.CockyBubblesService;
+import ru.yandex.whocallsya.bubble.BubbleBaseLayout;
 import ru.yandex.whocallsya.service.SearchAsyncTask;
 import ru.yandex.whocallsya.ui.adapter.SearchAdapter;
 import ru.yandex.whocallsya.ui.adapter.SearchItemDivider;
 
-import static android.content.Context.LAYOUT_INFLATER_SERVICE;
-import static android.content.Context.WINDOW_SERVICE;
-import static android.content.Intent.ACTION_VIEW;
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.graphics.PixelFormat.TRANSLUCENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
-import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
 
-public class InformingLayout {
-    final private WindowManager windowManager;
-    final private CockyBubblesService service;
-    final private ViewGroup windowLayout;
-    final private RecyclerView recyclerView;
-    private boolean showed = false;
+public class InformingLayout extends BubbleBaseLayout {
 
+    private RecyclerView recyclerView;
+    private TextView TextPhoneNumber;
+    private boolean showed;
 
-    public InformingLayout(final CockyBubblesService service, String phone, String countryCode) {
-        this.service = service;
-        windowManager = (WindowManager) service.getSystemService(WINDOW_SERVICE);
+    public InformingLayout(Context context) {
+        super(context);
+    }
 
-        LayoutInflater layoutInflater = (LayoutInflater) service.getSystemService(LAYOUT_INFLATER_SERVICE);
-        windowLayout = (ViewGroup) layoutInflater.inflate(R.layout.info_layout, null);
+    public InformingLayout(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-        TextView phoneNumber = (TextView) windowLayout.findViewById(R.id.phone_number);
+    public InformingLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @Override
+    public void onViewAdded(View child) {
+        super.onViewAdded(child);
+        TextPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
+    }
+
+    public void setData(String phone) {
+        final String searchString = "https://yandex.ru/search/?text=" + phone;
+
+        new SearchAsyncTask(this).execute(searchString);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            phone = PhoneNumberUtils.formatNumber(phone, countryCode);
+            phone = PhoneNumberUtils.formatNumber(phone, getCurrentCountryCode());
         } else {
             phone = PhoneNumberUtils.formatNumber(phone);
         }
-        phoneNumber.setText(phone);
-        recyclerView = (RecyclerView) windowLayout.findViewById(R.id.recycler_view_search);
+        TextPhoneNumber.setText(phone);
     }
 
     public void show() {
         if (!showed) {
-            LayoutParams windowParams = new LayoutParams(
-                    WRAP_CONTENT,
-                    WRAP_CONTENT,
-                    TYPE_SYSTEM_ERROR,
-                    FLAG_NOT_FOCUSABLE | FLAG_SHOW_WHEN_LOCKED,
-                    TRANSLUCENT
-            );
-            windowParams.gravity = Gravity.TOP;
-            windowParams.y = dpToPx(8);
-            windowManager.addView(windowLayout, windowParams);
             showed = true;
+            setVisibility(View.VISIBLE);
         }
     }
 
     public void unShow() {
         if (showed) {
-            windowManager.removeViewImmediate(windowLayout);
             showed = false;
+            setVisibility(View.GONE);
         }
     }
 
-
     public void setPreview(final List<SearchAsyncTask.Response> responses) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-        recyclerView.addItemDecoration(new SearchItemDivider(recyclerView.getContext()));
+        Log.d("INFORMING_LAYOUT", "SetPreviewresponses");
+        Log.d("INFORMING_LAYOUT", TextPhoneNumber.getText().toString());
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.addItemDecoration(new SearchItemDivider(getContext()));
         recyclerView.setAdapter(new SearchAdapter(responses, position -> {
-            Intent intent = new Intent(ACTION_VIEW, Uri.parse(responses.get(position).getUrl()));
-            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-            service.startActivity(intent);
+//            Intent intent = new Intent(ACTION_VIEW, Uri.parse(responses.get(position).getUrl()));
+//            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+//            service.startActivity(intent);
+            Log.d("INFORMING_LAYOUT", "click-" + position);
             //TODO не выйдет, надо же еще кнопку поменять. нужны колбеки в сервис
-            unShow();
         }));
+        new Handler(Looper.getMainLooper()).post(this::requestLayout);
     }
 
     public boolean isShowed() {
         return showed;
     }
 
-    private int dpToPx(float dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    private String getCurrentCountryCode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return getResources().getConfiguration().getLocales().get(0).getCountry();
+        } else {
+            return getResources().getConfiguration().locale.getCountry();
+        }
     }
+
 }
