@@ -17,7 +17,7 @@ import ru.yandex.whocallsya.bubble.BubbleBaseLayout;
 import ru.yandex.whocallsya.bubble.BubbleLayout;
 import ru.yandex.whocallsya.bubble.BubbleTrashLayout;
 import ru.yandex.whocallsya.bubble.BubblesLayoutCoordinator;
-import ru.yandex.whocallsya.ui.view.InformingLayout;
+import ru.yandex.whocallsya.bubble.InformingLayout;
 
 public class CockyBubblesService extends BaseBubblesService {
 
