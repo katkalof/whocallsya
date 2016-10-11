@@ -40,8 +40,10 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 public class InformingLayout extends BubbleBaseLayout {
 
     private WeakReference<RecyclerView> recyclerView;
-    private TextView TextPhoneNumber;
+    private TextView textPhoneNumber;
+    private View loadingView;
     private boolean shown;
+    private Retrofit retrofit;
 
     public InformingLayout(Context context) {
         super(context);
@@ -58,30 +60,33 @@ public class InformingLayout extends BubbleBaseLayout {
     @Override
     public void onViewAdded(View child) {
         super.onViewAdded(child);
-        TextPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        textPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        textPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        loadingView = findViewById(R.id.loading_view);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.addItemDecoration(new SearchItemDivider(getContext()));
         this.recyclerView = new WeakReference<>(recyclerView);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getContext().getString(R.string.ApiHttp))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(SimpleXmlConverterFactory.create(new Persister(new AnnotationStrategy())))
+                .build();
     }
 
     public void setData(String phone) {
-        // TODO: 10.10.2016 Добавить Проверка на открытый лейаут с тем же номером
+        loadingView.setVisibility(View.VISIBLE);
+        recyclerView.get().setVisibility(GONE);
         String formattedPhone;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             formattedPhone = PhoneNumberUtils.formatNumber(phone, getCurrentCountryCode());
         } else {
             formattedPhone = PhoneNumberUtils.formatNumber(phone);
         }
-        TextPhoneNumber.setText(formattedPhone);
+        textPhoneNumber.setText(formattedPhone);
 
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(getContext().getString(R.string.ApiHttp))
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .addConverterFactory(SimpleXmlConverterFactory.create(new Persister(new AnnotationStrategy())))
-                .build();
         String token = phone + getContext().getString(R.string.ApiSalt);
         Log.d("whocallsya", "InfoLayout " + phone + " " + md5(token));
 
@@ -95,13 +100,15 @@ public class InformingLayout extends BubbleBaseLayout {
                         searchItems -> {
                             Log.d("whocallsya", "InfoLayout onResponse good");
                             RecyclerView recyclerView = this.recyclerView.get();
-                            if (recyclerView != null)
+                            if (recyclerView != null) {
                                 recyclerView.setAdapter(new SearchAdapter(searchItems, position -> {
                                     Intent intent = new Intent(ACTION_VIEW, Uri.parse(searchItems.get(position).getUrl().toString()));
                                     intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
                                     getContext().startActivity(intent);
-                                    recyclerView.requestLayout();
                                 }));
+                                loadingView.setVisibility(GONE);
+                                recyclerView.setVisibility(VISIBLE);
+                            }
                         },
                         e -> Log.e("whocallsya", "InfoLayout onFailure " + e)
                 );
