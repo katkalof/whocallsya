@@ -12,17 +12,17 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import ru.yandex.whocallsya.R;
-import ru.yandex.whocallsya.service.SearchAsyncTask;
+import ru.yandex.whocallsya.network.SearchItem;
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchItemViewHolder> {
 
     @NonNull
-    private final List<SearchAsyncTask.Response> responses;
+    private final List<SearchItem> searchItems;
     @NonNull
     private final OnItemClickListener listener;
 
-    public SearchAdapter(@NonNull List<SearchAsyncTask.Response> responses, @NonNull OnItemClickListener listener) {
-        this.responses = responses;
+    public SearchAdapter(@NonNull List<SearchItem> searchItems, @NonNull OnItemClickListener listener) {
+        this.searchItems = searchItems;
         this.listener = listener;
     }
 
@@ -42,21 +42,24 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchItem
 
     @Override
     public void onBindViewHolder(SearchItemViewHolder holder, int position) {
-        holder.textTitle.setText(responses.get(position).getTitle());
-        holder.textUrl.setText(responses.get(position).getUrl());
-        holder.textDesc.setText(responses.get(position).getDescription());
+        holder.textTitle.setText(searchItems.get(position).getTitle());
+        holder.textUrl.setText(searchItems.get(position).getUrl());
+        holder.textDesc.setText(searchItems.get(position).getDescription());
     }
 
     @Override
     public int getItemCount() {
-        return responses.size();
+        return searchItems.size();
     }
 
     class SearchItemViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.info_title) TextView textTitle;
-        @BindView(R.id.info_url) TextView textUrl;
-        @BindView(R.id.info_desc) TextView textDesc;
+        @BindView(R.id.info_title)
+        TextView textTitle;
+        @BindView(R.id.info_url)
+        TextView textUrl;
+        @BindView(R.id.info_desc)
+        TextView textDesc;
 
         SearchItemViewHolder(View itemView) {
             super(itemView);

@@ -115,7 +115,14 @@ dependencies {
     compile libraries.timber
     compile libraries.rxandroid
     compile libraries.rxjava
-    compile libraries.jsoup
+    compile libraries.retrofit
+    compile libraries.retrofit2AdapterRx
+    compile(libraries.retrofitSimpleXml) {
+        exclude module: 'stax-api'
+        exclude module: 'stax'
+        exclude module: 'xpp3'
+    }
+
     // Developer tools (Developer Settings)
     compile libraries.stetho
     compile libraries.leakCanary

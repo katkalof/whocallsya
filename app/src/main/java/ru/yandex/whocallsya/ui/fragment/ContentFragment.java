@@ -25,7 +25,7 @@ public class ContentFragment extends BaseFragment {
     @OnClick(R.id.hello)
     void addBubbleAgain() {
         Intent i = new Intent(getContext(), CockyBubblesService.class);
-        i.putExtra(PHONE_NUMBER, "+79992114504");
+        i.putExtra(PHONE_NUMBER, "+74957397000");
         getActivity().startService(i);
     }
 }
