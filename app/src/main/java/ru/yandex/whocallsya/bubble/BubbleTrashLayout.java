@@ -8,9 +8,8 @@ import android.util.AttributeSet;
 
 import ru.yandex.whocallsya.R;
 
-
 public class BubbleTrashLayout extends BubbleBaseLayout {
-    public static final int VIBRATION_DURATION_IN_MS = 42;
+    public static final int VIBRATION_DURATION_IN_MS = 8;
     private boolean magnetismApplied = false;
     private boolean attachedToWindow = false;
 

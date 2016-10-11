@@ -104,9 +104,8 @@ public class BaseBubblesService extends Service {
 
     WindowManager.LayoutParams buildLayoutParamsForBubble() {
         DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
-        // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
-        int xCenter = dM.widthPixels / 2 - dpToPx(34);
-        int yCenter = dM.heightPixels / 2;
+        int xCenter = dM.widthPixels / 2 - dpToPx(34, dM.density);
+        int yCenter = dM.heightPixels / 2 - dpToPx(10, dM.density);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WRAP_CONTENT,
                 WRAP_CONTENT,
@@ -133,16 +132,18 @@ public class BaseBubblesService extends Service {
     }
 
     WindowManager.LayoutParams buildLayoutParamsForInfo() {
+        DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
+        int width = dM.widthPixels - dpToPx(16, dM.density);
+        int height = dpToPx(328, dM.density);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WRAP_CONTENT,
-                WRAP_CONTENT,
+                width,
+                height,
                 TYPE_SYSTEM_ERROR,
                 FLAG_NOT_FOCUSABLE | FLAG_SHOW_WHEN_LOCKED,
                 TRANSLUCENT
         );
         params.gravity = Gravity.TOP;
-        params.x = 0;
-        params.y = 0;//dpToPx(8)
+        params.y = dpToPx(8, dM.density);
         return params;
     }
 
@@ -153,8 +154,8 @@ public class BaseBubblesService extends Service {
         return windowManager;
     }
 
-    private int dpToPx(float dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    private int dpToPx(float dp, float density) {
+        return (int) (dp * density);
     }
 
     protected boolean unknownPhoneNumber(String incomingPhoneNumber) {
