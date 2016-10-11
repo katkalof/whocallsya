@@ -15,6 +15,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.telephony.PhoneNumberUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -101,16 +102,21 @@ public class BaseBubblesService extends Service {
         YandexMetrica.reportEvent("BubbleService", eventAttributes);
     }
 
-    WindowManager.LayoutParams buildLayoutParamsForBubble(int x, int y) {
+    WindowManager.LayoutParams buildLayoutParamsForBubble() {
+        DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
+        // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
+        int xCenter = dM.widthPixels / 2 - dpToPx(34);
+        int yCenter = dM.heightPixels / 2;
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WRAP_CONTENT,
                 WRAP_CONTENT,
                 TYPE_SYSTEM_ERROR,
                 FLAG_NOT_FOCUSABLE | FLAG_SHOW_WHEN_LOCKED,
                 PixelFormat.TRANSPARENT);
+
         params.gravity = Gravity.TOP | Gravity.START;
-        params.x = x;
-        params.y = y;
+        params.x = xCenter;
+        params.y = yCenter;
         return params;
     }
 

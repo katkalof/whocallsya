@@ -110,7 +110,6 @@ public class BubbleLayout extends BubbleBaseLayout {
                     }
                     break;
                 case MotionEvent.ACTION_UP:
-                    goToWall();
                     if (getLayoutCoordinator() != null) {
                         getLayoutCoordinator().notifyBubbleRelease(this);
                         playAnimationClickUp();
@@ -120,6 +119,8 @@ public class BubbleLayout extends BubbleBaseLayout {
                             onBubbleClickListener.onBubbleClick(this);
                             changeImageView();
                         }
+                    } else {
+                        goToWall();
                     }
                     break;
             }

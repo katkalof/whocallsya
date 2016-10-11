@@ -26,10 +26,10 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         App.get(this).applicationComponent().inject(this);
 
-        if (BuildConfig.DEBUG) {
-            setContentView(viewModifier.modify(getLayoutInflater().inflate(R.layout.activity_main, null)));
-        } else {
+        if (BuildConfig.BUILD_TYPE.equals("release")) {
             setContentView(R.layout.activity_main);
+        } else {
+            setContentView(viewModifier.modify(getLayoutInflater().inflate(R.layout.activity_main, null)));
         }
 
         if (savedInstanceState == null) {

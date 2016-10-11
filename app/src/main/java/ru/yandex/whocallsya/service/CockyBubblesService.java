@@ -1,10 +1,8 @@
 package ru.yandex.whocallsya.service;
 
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -31,13 +29,7 @@ public class CockyBubblesService extends BaseBubblesService {
         if (intent.getExtras().containsKey(PHONE_NUMBER)) {
             phoneNumber = intent.getStringExtra(PHONE_NUMBER);
             if (unknownPhoneNumber(phoneNumber) && !bubbles.containsKey(phoneNumber)) {
-                DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
-                // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
-                int xCenter = 180;
-                int yCenter = 320;
-                int x = Math.round((xCenter - 56 / 2) * dM.density);
-                int y = Math.round((yCenter - 56 / 2) * dM.density);
-                addBubble(phoneNumber, x, y);
+                addBubble(phoneNumber);
                 return START_NOT_STICKY;
             }
         }
@@ -59,10 +51,10 @@ public class CockyBubblesService extends BaseBubblesService {
         infoLayout.setLayoutCoordinator(layoutCoordinator);
     }
 
-    public void addBubble(String number, int xBubbleCenter, int yBubbleCenter) {
+    public void addBubble(String number) {
         logBubble(number, "addBubble");
         BubbleLayout bubbleView = (BubbleLayout) LayoutInflater.from(this).inflate(R.layout.bubble_main, null);
-        WindowManager.LayoutParams layoutParams = buildLayoutParamsForBubble(xBubbleCenter, yBubbleCenter);
+        WindowManager.LayoutParams layoutParams = buildLayoutParamsForBubble();
         bubbleView.setNumber(number);
         bubbleView.setWindowManager(getWindowManager());
         bubbleView.setViewParams(layoutParams);
