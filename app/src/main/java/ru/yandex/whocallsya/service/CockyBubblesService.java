@@ -69,19 +69,21 @@ public class CockyBubblesService extends BaseBubblesService {
         bubbleView.setLayoutCoordinator(layoutCoordinator);
         bubbleView.setShouldStickToWall(true);
         bubbleView.setOnBubbleClickListener(bubble -> {
-            // TODO: 11.10.2016 Не загружать повторнo, если запрос по этому номеру был предыдущим
             if (bubbleView.isShownOpen()) {
                 infoLayout.unShow();
-                shownNumber = "";
             } else {
-                infoLayout.setData(number);
                 if (infoLayout.isOpen()) {
-                    if (!shownNumber.isEmpty())
+                    infoLayout.setData(number);
+                    if (!shownNumber.isEmpty() && bubbles.containsKey(shownNumber)) {
                         bubbles.get(shownNumber).changeImageView();
+                    }
                 } else {
+                    if (!shownNumber.equals(number)) {
+                        infoLayout.setData(number);
+                        shownNumber = number;
+                    }
                     infoLayout.show();
                 }
-                shownNumber = number;
             }
         });
         bubbles.put(number, bubbleView);
