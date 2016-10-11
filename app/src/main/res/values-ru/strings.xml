@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">АОН</string>
     <string name="content">Нажми, чтобы посмотреть</string>
+    <string name="text_error">Попробовать снова</string>
 </resources>

@@ -8,12 +8,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
-import android.widget.ImageView;
 
 import java.util.WeakHashMap;
 
 import ru.yandex.whocallsya.R;
-import ru.yandex.whocallsya.bubble.BubbleBaseLayout;
 import ru.yandex.whocallsya.bubble.BubbleLayout;
 import ru.yandex.whocallsya.bubble.BubbleTrashLayout;
 import ru.yandex.whocallsya.bubble.BubblesLayoutCoordinator;
@@ -22,7 +20,7 @@ import ru.yandex.whocallsya.bubble.InformingLayout;
 public class CockyBubblesService extends BaseBubblesService {
 
     public static final String PHONE_NUMBER = "PHONE_NUMBER";
-    WeakHashMap<BubbleBaseLayout, String> bubbles = new WeakHashMap<>();
+    WeakHashMap<String, BubbleLayout> bubbles = new WeakHashMap<>();
     private BubbleTrashLayout bubblesTrash;
     private InformingLayout infoLayout;
     private BubblesLayoutCoordinator layoutCoordinator;
@@ -32,7 +30,7 @@ public class CockyBubblesService extends BaseBubblesService {
         String phoneNumber;
         if (intent.getExtras().containsKey(PHONE_NUMBER)) {
             phoneNumber = intent.getStringExtra(PHONE_NUMBER);
-            if (unknownPhoneNumber(phoneNumber) && !bubbles.containsValue(phoneNumber)) {
+            if (unknownPhoneNumber(phoneNumber) && !bubbles.containsKey(phoneNumber)) {
                 DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
                 // TODO: 02.10.2016 по хорошему нужно вынести константный размер вьюшки отсюда
                 int xCenter = 180;
@@ -64,32 +62,36 @@ public class CockyBubblesService extends BaseBubblesService {
         logBubble(number, "addBubble");
         BubbleLayout bubbleView = (BubbleLayout) LayoutInflater.from(this).inflate(R.layout.bubble_main, null);
         WindowManager.LayoutParams layoutParams = buildLayoutParamsForBubble(xBubbleCenter, yBubbleCenter);
+        bubbleView.setNumber(number);
         bubbleView.setWindowManager(getWindowManager());
         bubbleView.setViewParams(layoutParams);
         bubbleView.setLayoutCoordinator(layoutCoordinator);
-        bubbleView.setShouldStickToWall(false);
+        bubbleView.setShouldStickToWall(true);
         bubbleView.setOnBubbleClickListener(bubble -> {
-            ImageView v = ((ImageView) bubbleView.findViewById(R.id.bubble_image));
-            // TODO: 09.10.2016  Ну у нас же много бабл на один инфо лейаутов
-            if (infoLayout.isShowed()) {
+            if (bubbleView.isShownOpen()) {
                 infoLayout.unShow();
-                v.setImageResource(R.drawable.ic_unknown);
             } else {
+                String lastNumber = infoLayout.getLastSearchingNumber();
                 infoLayout.setData(number);
-                infoLayout.show();
-                v.setImageResource(R.drawable.ic_close);
+                if (infoLayout.isOpen()) {
+                    if (!lastNumber.isEmpty() && bubbles.containsKey(lastNumber)) {
+                        bubbles.get(lastNumber).changeImageView();
+                    }
+                } else {
+                    infoLayout.show();
+                }
             }
         });
-        bubbles.put(bubbleView, number);
+        bubbles.put(number, bubbleView);
         addViewToWindow(bubbleView);
     }
 
-    public void removeBubble(BubbleLayout bubble) {
+    public void removeBubble(String number) {
         new Handler(Looper.getMainLooper()).post(() -> {
-            getWindowManager().removeView(bubble);
-            if (bubbles.containsKey(bubble)) {
-                logBubble(bubbles.get(bubble), "removeBubble");
-                bubbles.remove(bubble);
+            getWindowManager().removeView(bubbles.get(number));
+            if (bubbles.containsKey(number)) {
+                logBubble(number, "removeBubble");
+                bubbles.remove(number);
             }
             if (bubbles.isEmpty()) {
                 getWindowManager().removeView(bubblesTrash);

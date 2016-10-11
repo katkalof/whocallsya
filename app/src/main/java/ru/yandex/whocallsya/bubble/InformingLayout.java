@@ -11,6 +11,7 @@ import android.text.SpannableStringBuilder;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.simpleframework.xml.convert.AnnotationStrategy;
@@ -40,8 +41,13 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 public class InformingLayout extends BubbleBaseLayout {
 
     private WeakReference<RecyclerView> recyclerView;
-    private TextView TextPhoneNumber;
-    private boolean showed;
+    private TextView textPhoneNumber;
+    private View loadingView;
+    private Button buttonError;
+    private boolean shown;
+    private Retrofit retrofit;
+    private String lastSearchingNumber = "";
+
 
     public InformingLayout(Context context) {
         super(context);
@@ -58,30 +64,48 @@ public class InformingLayout extends BubbleBaseLayout {
     @Override
     public void onViewAdded(View child) {
         super.onViewAdded(child);
-        TextPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        textPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        textPhoneNumber = (TextView) findViewById(R.id.phone_number);
+        loadingView = findViewById(R.id.loading_view);
+        buttonError = (Button) findViewById(R.id.button_error);
+        buttonError.setOnClickListener(v -> {
+            if (!lastSearchingNumber.isEmpty()) {
+                setData(lastSearchingNumber);
+            }
+        });
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.addItemDecoration(new SearchItemDivider(getContext()));
         this.recyclerView = new WeakReference<>(recyclerView);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getContext().getString(R.string.ApiHttp))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(SimpleXmlConverterFactory.create(new Persister(new AnnotationStrategy())))
+                .build();
     }
 
+
     public void setData(String phone) {
-        // TODO: 10.10.2016 Добавить Проверка на открытый лейаут с тем же номером
+        if (!phone.equals(lastSearchingNumber) || buttonError.getVisibility() != GONE) {
+            downloadSearchResponse(phone);
+        }
+    }
+
+    private void downloadSearchResponse(String phone) {
+        lastSearchingNumber = phone;
+        loadingView.setVisibility(VISIBLE);
+        buttonError.setVisibility(GONE);
+        recyclerView.get().setVisibility(GONE);
         String formattedPhone;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             formattedPhone = PhoneNumberUtils.formatNumber(phone, getCurrentCountryCode());
         } else {
             formattedPhone = PhoneNumberUtils.formatNumber(phone);
         }
-        TextPhoneNumber.setText(formattedPhone);
+        textPhoneNumber.setText(formattedPhone);
 
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(getContext().getString(R.string.ApiHttp))
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .addConverterFactory(SimpleXmlConverterFactory.create(new Persister(new AnnotationStrategy())))
-                .build();
         String token = phone + getContext().getString(R.string.ApiSalt);
         Log.d("whocallsya", "InfoLayout " + phone + " " + md5(token));
 
@@ -95,34 +119,44 @@ public class InformingLayout extends BubbleBaseLayout {
                         searchItems -> {
                             Log.d("whocallsya", "InfoLayout onResponse good");
                             RecyclerView recyclerView = this.recyclerView.get();
-                            if (recyclerView != null)
+                            if (recyclerView != null) {
                                 recyclerView.setAdapter(new SearchAdapter(searchItems, position -> {
                                     Intent intent = new Intent(ACTION_VIEW, Uri.parse(searchItems.get(position).getUrl().toString()));
                                     intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
                                     getContext().startActivity(intent);
-                                    recyclerView.requestLayout();
                                 }));
+                                loadingView.setVisibility(GONE);
+                                recyclerView.setVisibility(VISIBLE);
+                            }
                         },
-                        e -> Log.e("whocallsya", "InfoLayout onFailure " + e)
+                        e -> {
+                            Log.e("whocallsya", "InfoLayout onFailure " + e);
+                            buttonError.setVisibility(VISIBLE);
+                            loadingView.setVisibility(GONE);
+                        }
                 );
     }
 
     public void show() {
-        if (!showed) {
-            showed = true;
+        if (!shown) {
+            shown = true;
             setVisibility(View.VISIBLE);
         }
     }
 
     public void unShow() {
-        if (showed) {
-            showed = false;
+        if (shown) {
+            shown = false;
             setVisibility(View.GONE);
         }
     }
 
-    public boolean isShowed() {
-        return showed;
+    public boolean isOpen() {
+        return shown;
+    }
+
+    public String getLastSearchingNumber() {
+        return lastSearchingNumber;
     }
 
     private String getCurrentCountryCode() {

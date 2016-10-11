@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 import ru.yandex.whocallsya.R;
 
@@ -27,6 +28,10 @@ public class BubbleLayout extends BubbleBaseLayout {
     private int width;
     private WindowManager windowManager;
     private boolean shouldStickToWall = true;
+
+    private String number;
+    private ImageView image;
+    private boolean shownOpen = false;
 
     public void setOnBubbleRemoveListener(OnBubbleRemoveListener listener) {
         onBubbleRemoveListener = listener;
@@ -63,11 +68,12 @@ public class BubbleLayout extends BubbleBaseLayout {
 
     public void notifyBubbleRemoved() {
         if (onBubbleRemoveListener != null) {
-            onBubbleRemoveListener.onBubbleRemoved(this);
+            onBubbleRemoveListener.onBubbleRemoved(number);
         }
     }
 
     private void initializeView() {
+        number = null;
         setClickable(true);
     }
 
@@ -75,6 +81,8 @@ public class BubbleLayout extends BubbleBaseLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         playAnimation();
+        image = ((ImageView) findViewById(R.id.bubble_image));
+
     }
 
     @Override
@@ -110,6 +118,7 @@ public class BubbleLayout extends BubbleBaseLayout {
                     if (System.currentTimeMillis() - lastTouchDown < TOUCH_TIME_THRESHOLD) {
                         if (onBubbleClickListener != null) {
                             onBubbleClickListener.onBubbleClick(this);
+                            changeImageView();
                         }
                     }
                     break;
@@ -155,8 +164,31 @@ public class BubbleLayout extends BubbleBaseLayout {
 
     }
 
+    public void changeImageView() {
+        if (image != null) {
+            shownOpen = !shownOpen;
+            if (shownOpen) {
+                image.setImageResource(R.drawable.ic_close);
+            } else {
+                image.setImageResource(R.drawable.ic_unknown);
+            }
+        }
+    }
+
+    public boolean isShownOpen() {
+        return shownOpen;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
     public interface OnBubbleRemoveListener {
-        void onBubbleRemoved(BubbleLayout bubble);
+        void onBubbleRemoved(String number);
     }
 
     public interface OnBubbleClickListener {

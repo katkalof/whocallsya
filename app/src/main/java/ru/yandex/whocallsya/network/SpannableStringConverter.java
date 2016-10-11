@@ -1,8 +1,10 @@
 package ru.yandex.whocallsya.network;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
@@ -25,6 +27,7 @@ public class SpannableStringConverter implements Converter<SpannableStringBuilde
                 addNodeValue(inputNode, text);
                 int end = text.length();
                 text.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                text.setSpan(new ForegroundColorSpan(Color.BLACK), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             addNodeValue(node, text);
             inputNode = getNextNode(node);
