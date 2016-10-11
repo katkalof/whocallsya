@@ -64,8 +64,8 @@ android {
 
         release {
             signingConfig signingConfigs.yamblz
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
             // Enables code coverage with Jacoco only for instrumentation tests.
             // Coverage for JVM tests done by code_quality_tools/jacoco.gradle.
