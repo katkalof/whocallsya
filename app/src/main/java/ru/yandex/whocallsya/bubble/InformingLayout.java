@@ -124,6 +124,8 @@ public class InformingLayout extends BubbleBaseLayout {
                                     Intent intent = new Intent(ACTION_VIEW, Uri.parse(searchItems.get(position).getUrl().toString()));
                                     intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
                                     getContext().startActivity(intent);
+                                    getLayoutCoordinator().changeLastBubble();
+                                    unShow();
                                 }));
                                 loadingView.setVisibility(GONE);
                                 recyclerView.setVisibility(VISIBLE);

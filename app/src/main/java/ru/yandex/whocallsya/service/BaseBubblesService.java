@@ -51,7 +51,7 @@ public class BaseBubblesService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d("whocallsya","onDestroyService");
+        Log.d("whocallsya", "onDestroyService");
         Answers.getInstance().logCustom(new CustomEvent("BubbleService")
                 .putCustomAttribute("SystemAction", "onDestroy"));
         Map<String, Object> eventAttributes = new HashMap<>();

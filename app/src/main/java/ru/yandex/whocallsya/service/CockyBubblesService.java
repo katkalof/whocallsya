@@ -50,12 +50,13 @@ public class CockyBubblesService extends BaseBubblesService {
         Log.d("whocallsya", "onCreateService");
         bubblesTrash = new BubbleTrashLayout(this);
         addBubbleLayout(R.layout.bubble_trash, bubblesTrash, buildLayoutParamsForTrash());
-        infoLayout = new InformingLayout(this);
-        addBubbleLayout(R.layout.info_layout, infoLayout, buildLayoutParamsForInfo());
         layoutCoordinator = new BubblesLayoutCoordinator.Builder(this)
                 .setWindowManager(getWindowManager())
                 .setTrashView(bubblesTrash)
                 .build();
+        infoLayout = new InformingLayout(this);
+        addBubbleLayout(R.layout.info_layout, infoLayout, buildLayoutParamsForInfo());
+        infoLayout.setLayoutCoordinator(layoutCoordinator);
     }
 
     public void addBubble(String number, int xBubbleCenter, int yBubbleCenter) {
@@ -74,9 +75,7 @@ public class CockyBubblesService extends BaseBubblesService {
                 String lastNumber = infoLayout.getLastSearchingNumber();
                 infoLayout.setData(number);
                 if (infoLayout.isOpen()) {
-                    if (!lastNumber.isEmpty() && bubbles.containsKey(lastNumber)) {
-                        bubbles.get(lastNumber).changeImageView();
-                    }
+                    changeBubble(lastNumber);
                 } else {
                     infoLayout.show();
                 }
@@ -101,4 +100,15 @@ public class CockyBubblesService extends BaseBubblesService {
         });
     }
 
+    public void changeLastBubble() {
+        if (infoLayout != null) {
+            changeBubble(infoLayout.getLastSearchingNumber());
+        }
+    }
+
+    private void changeBubble(String number) {
+        if (!number.isEmpty() && bubbles.containsKey(number)) {
+            bubbles.get(number).changeImageView();
+        }
+    }
 }

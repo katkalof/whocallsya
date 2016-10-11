@@ -80,6 +80,12 @@ final public class BubblesLayoutCoordinator {
         }
     }
 
+    public void changeLastBubble() {
+        if(bubblesService!=null){
+            bubblesService.changeLastBubble();
+        }
+    }
+
     public static class Builder {
         private BubblesLayoutCoordinator layoutCoordinator;
 
