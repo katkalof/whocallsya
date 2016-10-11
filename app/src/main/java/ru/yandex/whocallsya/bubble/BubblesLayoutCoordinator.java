@@ -74,9 +74,15 @@ final public class BubblesLayoutCoordinator {
     public void notifyBubbleRelease(BubbleLayout bubble) {
         if (trashView != null) {
             if (checkIfBubbleIsOverTrash(bubble)) {
-                bubblesService.removeBubble(bubble);
+                bubblesService.removeBubble(bubble.getNumber());
             }
             trashView.setVisibility(View.GONE);
+        }
+    }
+
+    public void changeLastBubble() {
+        if(bubblesService!=null){
+            bubblesService.changeLastBubble();
         }
     }
 

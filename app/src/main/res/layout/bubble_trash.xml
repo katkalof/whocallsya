@@ -4,6 +4,6 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="20dp"
-    android:src="@mipmap/bubble_trash_background"
+    android:src="@drawable/bubble_trash_background"
     android:layout_gravity="bottom|center_horizontal"
     android:contentDescription="@string/bubble_trash"/>

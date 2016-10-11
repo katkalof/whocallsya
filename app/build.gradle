@@ -1,4 +1,19 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
 apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.neenbedankt.android-apt'
 apply from: '../code_quality_tools/jacoco.gradle'
@@ -100,7 +115,14 @@ dependencies {
     compile libraries.timber
     compile libraries.rxandroid
     compile libraries.rxjava
-    compile libraries.jsoup
+    compile libraries.retrofit
+    compile libraries.retrofit2AdapterRx
+    compile(libraries.retrofitSimpleXml) {
+        exclude module: 'stax-api'
+        exclude module: 'stax'
+        exclude module: 'xpp3'
+    }
+
     // Developer tools (Developer Settings)
     compile libraries.stetho
     compile libraries.leakCanary
@@ -123,6 +145,11 @@ dependencies {
         exclude module: 'support-annotations'
         exclude module: 'recyclerview-v7'
         exclude module: 'support-v4'
+    }
+    // AppMetrica from maven central.
+    compile 'com.yandex.android:mobmetricalib:2.51'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.4@aar') {
+        transitive = true;
     }
 }
 

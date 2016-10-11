@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import ru.yandex.whocallsya.App;
+import ru.yandex.whocallsya.BuildConfig;
 import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.developer_settings.DeveloperSettingsModule;
 import ru.yandex.whocallsya.ui.fragment.ContentFragment;
@@ -25,7 +26,11 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         App.get(this).applicationComponent().inject(this);
 
-        setContentView(viewModifier.modify(getLayoutInflater().inflate(R.layout.activity_main, null)));
+        if (BuildConfig.BUILD_TYPE.equals("release")) {
+            setContentView(R.layout.activity_main);
+        } else {
+            setContentView(viewModifier.modify(getLayoutInflater().inflate(R.layout.activity_main, null)));
+        }
 
         if (savedInstanceState == null) {
             getSupportFragmentManager()
