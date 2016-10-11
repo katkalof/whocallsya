@@ -1,12 +1,13 @@
 package ru.yandex.whocallsya.bubble;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.PhoneNumberUtils;
+import android.text.SpannableStringBuilder;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -15,25 +16,30 @@ import android.widget.TextView;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 
+import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.network.MblzApi;
 import ru.yandex.whocallsya.network.SearchItem;
-import ru.yandex.whocallsya.network.pojo.YandexSearch;
+import ru.yandex.whocallsya.network.pojo.YandexGroup;
 import ru.yandex.whocallsya.ui.adapter.SearchAdapter;
 import ru.yandex.whocallsya.ui.adapter.SearchItemDivider;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+
+import static android.content.Intent.ACTION_VIEW;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class InformingLayout extends BubbleBaseLayout {
 
-    private RecyclerView recyclerView;
+    private WeakReference<RecyclerView> recyclerView;
     private TextView TextPhoneNumber;
     private boolean showed;
 
@@ -53,7 +59,11 @@ public class InformingLayout extends BubbleBaseLayout {
     public void onViewAdded(View child) {
         super.onViewAdded(child);
         TextPhoneNumber = (TextView) findViewById(R.id.phone_number);
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.addItemDecoration(new SearchItemDivider(getContext()));
+        this.recyclerView = new WeakReference<>(recyclerView);
     }
 
     public void setData(String phone) {
@@ -69,26 +79,32 @@ public class InformingLayout extends BubbleBaseLayout {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(getContext().getString(R.string.ApiHttp))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(SimpleXmlConverterFactory.create(new Persister(new AnnotationStrategy())))
                 .build();
-        phone = "hello";  // TODO: 10.10.2016 REMOVE, for testing
         String token = phone + getContext().getString(R.string.ApiSalt);
         Log.d("whocallsya", "InfoLayout " + phone + " " + md5(token));
-        Call<YandexSearch> repos = retrofit.create(MblzApi.class).getSearchItems(phone, md5(token));
-        repos.enqueue(new Callback<YandexSearch>() {
-            @Override
-            public void onResponse(Call<YandexSearch> call, Response<YandexSearch> response) {
-                // TODO: 10.10.2016 Преобразовать в модель для адаптера и просетить в него, показать
-                Log.e("whocallsya", "InfoLayout onResponse good");
-            }
 
-            @Override
-            public void onFailure(Call<YandexSearch> call, Throwable t) {
-                // TODO: 10.10.2016 Ошибку показать
-                Log.e("whocallsya", "InfoLayout onFailure " + t);
-            }
-        });
-
+        retrofit.create(MblzApi.class).getSearchItems(phone, md5(token))
+                .subscribeOn(Schedulers.io())
+                .flatMapIterable(yandexSearch -> yandexSearch.getGrouping().getList())
+                .flatMap(groupToSearchItem)
+                .toList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        searchItems -> {
+                            Log.d("whocallsya", "InfoLayout onResponse good");
+                            RecyclerView recyclerView = this.recyclerView.get();
+                            if (recyclerView != null)
+                                recyclerView.setAdapter(new SearchAdapter(searchItems, position -> {
+                                    Intent intent = new Intent(ACTION_VIEW, Uri.parse(searchItems.get(position).getUrl().toString()));
+                                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                                    getContext().startActivity(intent);
+                                    recyclerView.requestLayout();
+                                }));
+                        },
+                        e -> Log.e("whocallsya", "InfoLayout onFailure " + e)
+                );
     }
 
     public void show() {
@@ -103,19 +119,6 @@ public class InformingLayout extends BubbleBaseLayout {
             showed = false;
             setVisibility(View.GONE);
         }
-    }
-
-    public void setPreview(final List<SearchItem> searchItems) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.addItemDecoration(new SearchItemDivider(getContext()));
-        recyclerView.setAdapter(new SearchAdapter(searchItems, position -> {
-//            Intent intent = new Intent(ACTION_VIEW, Uri.parse(searchItems.get(position).getUrl()));
-//            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-//            service.startActivity(intent);
-            Log.d("INFORMING_LAYOUT", "click-" + position);
-            //TODO не выйдет, надо же еще кнопку поменять. нужны колбеки в сервис
-        }));
-        new Handler(Looper.getMainLooper()).post(this::requestLayout);
     }
 
     public boolean isShowed() {
@@ -133,13 +136,11 @@ public class InformingLayout extends BubbleBaseLayout {
     private String md5(String s) {
         final String MD5 = "MD5";
         try {
-            // Create MD5 Hash
             MessageDigest digest = java.security.MessageDigest
                     .getInstance(MD5);
             digest.update(s.getBytes());
             byte messageDigest[] = digest.digest();
 
-            // Create Hex String
             StringBuilder hexString = new StringBuilder();
             for (byte aMessageDigest : messageDigest) {
                 String h = Integer.toHexString(0xFF & aMessageDigest);
@@ -154,5 +155,23 @@ public class InformingLayout extends BubbleBaseLayout {
         }
         return "";
     }
+
+    private Func1<YandexGroup, Observable<SearchItem>> groupToSearchItem = group -> {
+
+        SpannableStringBuilder desc;
+        if (group.getDoc().getPassages() == null) {
+            desc = new SpannableStringBuilder(group.getDoc().getHeadline());
+        } else {
+            desc = group.getDoc().getPassages().getPassagesList().get(0);
+        }
+
+        SearchItem searchItem = new SearchItem(
+                group.getDoc().getTitle(),
+                new SpannableStringBuilder(group.getDoc().getUrl()),
+                desc);
+
+        return Observable.just(searchItem);
+
+    };
 
 }

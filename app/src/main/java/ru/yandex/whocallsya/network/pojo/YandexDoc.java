@@ -28,6 +28,26 @@ public class YandexDoc {
     @Element
     private String domain;
 
+    public String getUrl() {
+        return url;
+    }
+
+    public Passages getPassages() {
+        return passages;
+    }
+
+    public SpannableStringBuilder getTitle() {
+        return title;
+    }
+
+    public String getHeadline() {
+        return headline;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
     @Override
     public String toString() {
         return "YandexDoc [" +
@@ -50,7 +70,7 @@ public class YandexDoc {
             this.passages = spannableStringBuilders;
         }
 
-        public List<SpannableStringBuilder> getPassage() {
+        public List<SpannableStringBuilder> getPassagesList() {
             return passages;
         }
 

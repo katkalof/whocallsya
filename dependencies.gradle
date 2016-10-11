@@ -7,7 +7,7 @@ ext.versions = [
         compileSdk                   : 24,
         buildTools                   : '24.0.2',
 
-        androidGradlePlugin          : '2.2.0',
+        androidGradlePlugin          : '2.2.1',
         aptGradlePlugin              : '1.8',
         retrolambdaGradlePlugin      : '3.2.5',
         lombokGradlePlugin           : '0.2.3.a2',
@@ -72,6 +72,7 @@ ext.libraries = [
         rxandroid          : "io.reactivex:rxandroid:$versions.rxandroid",
         rxjava             : "io.reactivex:rxjava:$versions.rxjava",
         retrofit           : "com.squareup.retrofit2:retrofit:$versions.retrofit",
+        retrofit2AdapterRx : "com.squareup.retrofit2:adapter-rxjava:$versions.retrofit",
         retrofitSimpleXml  : "com.squareup.retrofit2:converter-simplexml:$versions.retrofit",
 
         // Developer Tools

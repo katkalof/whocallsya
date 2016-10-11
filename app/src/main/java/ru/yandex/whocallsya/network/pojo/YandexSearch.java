@@ -28,7 +28,7 @@ public class YandexSearch {
     }
 
     @Root(strict = false, name = "grouping")
-    private static class YandexGrouping {
+    public static class YandexGrouping {
 
         @ElementList(inline = true, entry = "group")
         private List<YandexGroup> list;

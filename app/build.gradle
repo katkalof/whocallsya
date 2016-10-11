@@ -116,6 +116,7 @@ dependencies {
     compile libraries.rxandroid
     compile libraries.rxjava
     compile libraries.retrofit
+    compile libraries.retrofit2AdapterRx
     compile(libraries.retrofitSimpleXml) {
         exclude module: 'stax-api'
         exclude module: 'stax'
