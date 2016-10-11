@@ -11,6 +11,7 @@ import android.text.SpannableStringBuilder;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.simpleframework.xml.convert.AnnotationStrategy;
@@ -42,8 +43,11 @@ public class InformingLayout extends BubbleBaseLayout {
     private WeakReference<RecyclerView> recyclerView;
     private TextView textPhoneNumber;
     private View loadingView;
+    private Button buttonError;
     private boolean shown;
     private Retrofit retrofit;
+    private String lastSearchingNumber = "";
+
 
     public InformingLayout(Context context) {
         super(context);
@@ -63,6 +67,12 @@ public class InformingLayout extends BubbleBaseLayout {
         textPhoneNumber = (TextView) findViewById(R.id.phone_number);
         textPhoneNumber = (TextView) findViewById(R.id.phone_number);
         loadingView = findViewById(R.id.loading_view);
+        buttonError = (Button) findViewById(R.id.button_error);
+        buttonError.setOnClickListener(v -> {
+            if (!lastSearchingNumber.isEmpty()) {
+                setData(lastSearchingNumber);
+            }
+        });
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_search);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -76,8 +86,17 @@ public class InformingLayout extends BubbleBaseLayout {
                 .build();
     }
 
+
     public void setData(String phone) {
-        loadingView.setVisibility(View.VISIBLE);
+        if (!phone.equals(lastSearchingNumber) || buttonError.getVisibility() != GONE) {
+            downloadSearchResponse(phone);
+        }
+    }
+
+    private void downloadSearchResponse(String phone) {
+        lastSearchingNumber = phone;
+        loadingView.setVisibility(VISIBLE);
+        buttonError.setVisibility(GONE);
         recyclerView.get().setVisibility(GONE);
         String formattedPhone;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -110,7 +129,11 @@ public class InformingLayout extends BubbleBaseLayout {
                                 recyclerView.setVisibility(VISIBLE);
                             }
                         },
-                        e -> Log.e("whocallsya", "InfoLayout onFailure " + e)
+                        e -> {
+                            Log.e("whocallsya", "InfoLayout onFailure " + e);
+                            buttonError.setVisibility(VISIBLE);
+                            loadingView.setVisibility(GONE);
+                        }
                 );
     }
 
@@ -130,6 +153,10 @@ public class InformingLayout extends BubbleBaseLayout {
 
     public boolean isOpen() {
         return shown;
+    }
+
+    public String getLastSearchingNumber() {
+        return lastSearchingNumber;
     }
 
     private String getCurrentCountryCode() {

@@ -21,7 +21,6 @@ public class CockyBubblesService extends BaseBubblesService {
 
     public static final String PHONE_NUMBER = "PHONE_NUMBER";
     WeakHashMap<String, BubbleLayout> bubbles = new WeakHashMap<>();
-    String shownNumber = "";
     private BubbleTrashLayout bubblesTrash;
     private InformingLayout infoLayout;
     private BubblesLayoutCoordinator layoutCoordinator;
@@ -72,16 +71,13 @@ public class CockyBubblesService extends BaseBubblesService {
             if (bubbleView.isShownOpen()) {
                 infoLayout.unShow();
             } else {
+                String lastNumber = infoLayout.getLastSearchingNumber();
+                infoLayout.setData(number);
                 if (infoLayout.isOpen()) {
-                    infoLayout.setData(number);
-                    if (!shownNumber.isEmpty() && bubbles.containsKey(shownNumber)) {
-                        bubbles.get(shownNumber).changeImageView();
+                    if (!lastNumber.isEmpty() && bubbles.containsKey(lastNumber)) {
+                        bubbles.get(lastNumber).changeImageView();
                     }
                 } else {
-                    if (!shownNumber.equals(number)) {
-                        infoLayout.setData(number);
-                        shownNumber = number;
-                    }
                     infoLayout.show();
                 }
             }
