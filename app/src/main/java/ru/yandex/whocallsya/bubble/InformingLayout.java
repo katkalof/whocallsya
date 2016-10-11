@@ -41,7 +41,7 @@ public class InformingLayout extends BubbleBaseLayout {
 
     private WeakReference<RecyclerView> recyclerView;
     private TextView TextPhoneNumber;
-    private boolean showed;
+    private boolean shown;
 
     public InformingLayout(Context context) {
         super(context);
@@ -108,21 +108,21 @@ public class InformingLayout extends BubbleBaseLayout {
     }
 
     public void show() {
-        if (!showed) {
-            showed = true;
+        if (!shown) {
+            shown = true;
             setVisibility(View.VISIBLE);
         }
     }
 
     public void unShow() {
-        if (showed) {
-            showed = false;
+        if (shown) {
+            shown = false;
             setVisibility(View.GONE);
         }
     }
 
-    public boolean isShowed() {
-        return showed;
+    public boolean isOpen() {
+        return shown;
     }
 
     private String getCurrentCountryCode() {
