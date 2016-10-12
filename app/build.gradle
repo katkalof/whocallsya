@@ -148,7 +148,7 @@ dependencies {
     }
     // AppMetrica from maven central.
     compile 'com.yandex.android:mobmetricalib:2.51'
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.4@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
         transitive = true;
     }
 }
