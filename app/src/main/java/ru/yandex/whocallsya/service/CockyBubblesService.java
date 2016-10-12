@@ -11,7 +11,6 @@ import java.util.WeakHashMap;
 
 import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.bubble.BubbleLayout;
-import ru.yandex.whocallsya.bubble.BubbleTrashLayout;
 import ru.yandex.whocallsya.bubble.BubblesLayoutCoordinator;
 import ru.yandex.whocallsya.bubble.InformingLayout;
 
@@ -19,7 +18,7 @@ public class CockyBubblesService extends BaseBubblesService {
 
     public static final String PHONE_NUMBER = "PHONE_NUMBER";
     WeakHashMap<String, BubbleLayout> bubbles = new WeakHashMap<>();
-    private BubbleTrashLayout bubblesTrash;
+    //    private BubbleTrashLayout bubblesTrash;
     private InformingLayout infoLayout;
     private BubblesLayoutCoordinator layoutCoordinator;
 
@@ -40,11 +39,11 @@ public class CockyBubblesService extends BaseBubblesService {
     public void onCreate() {
         super.onCreate();
         Log.d("whocallsya", "onCreateService");
-        bubblesTrash = new BubbleTrashLayout(this);
-        addBubbleLayout(R.layout.bubble_trash, bubblesTrash, buildLayoutParamsForTrash());
+//        bubblesTrash = new BubbleTrashLayout(this);
+//        addBubbleLayout(R.layout.bubble_trash, bubblesTrash, buildLayoutParamsForTrash());
         layoutCoordinator = new BubblesLayoutCoordinator.Builder(this)
                 .setWindowManager(getWindowManager())
-                .setTrashView(bubblesTrash)
+//                .setTrashView(bubblesTrash)
                 .build();
         infoLayout = new InformingLayout(this);
         addBubbleLayout(R.layout.info_layout, infoLayout, buildLayoutParamsForInfo());
@@ -62,6 +61,7 @@ public class CockyBubblesService extends BaseBubblesService {
         bubbleView.setShouldStickToWall(true);
         bubbleView.setOnBubbleClickListener(bubble -> {
             if (bubbleView.isShownOpen()) {
+                removeBubble(bubble.getNumber());
                 infoLayout.unShow();
             } else {
                 String lastNumber = infoLayout.getLastSearchingNumber();
@@ -85,7 +85,7 @@ public class CockyBubblesService extends BaseBubblesService {
                 bubbles.remove(number);
             }
             if (bubbles.isEmpty()) {
-                getWindowManager().removeView(bubblesTrash);
+//                getWindowManager().removeView(bubblesTrash);
                 getWindowManager().removeView(infoLayout);
                 stopSelf();
             }
