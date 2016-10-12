@@ -60,10 +60,12 @@ public class CockyBubblesService extends BaseBubblesService {
         bubbleView.setLayoutCoordinator(layoutCoordinator);
         bubbleView.setShouldStickToWall(true);
         bubbleView.setOnBubbleClickListener(bubble -> {
-            if (bubbleView.isShownOpen()) {
+            if (bubble.isShownOpen()) {
                 removeBubble(bubble.getNumber());
                 infoLayout.unShow();
             } else {
+                bubble.goToBottom();
+                bubble.changeImageView();
                 String lastNumber = infoLayout.getLastSearchingNumber();
                 infoLayout.setData(number);
                 if (infoLayout.isOpen()) {

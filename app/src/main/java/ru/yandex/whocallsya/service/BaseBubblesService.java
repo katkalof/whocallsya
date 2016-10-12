@@ -133,7 +133,6 @@ public class BaseBubblesService extends Service {
 
     WindowManager.LayoutParams buildLayoutParamsForInfo() {
         DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
-        Log.d("whocallsya", dM.heightPixels + " " + dpToPx(16 + 56, dM.density));
         int width = dM.widthPixels - dpToPx(16, dM.density);
         int height = dM.heightPixels - dpToPx(16 + 24, dM.density);//margin plus status bar
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(

@@ -3,14 +3,19 @@ package ru.yandex.whocallsya.bubble;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.view.animation.AnimationSet;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 
 import ru.yandex.whocallsya.R;
@@ -26,6 +31,7 @@ public class BubbleLayout extends BubbleBaseLayout {
     private long lastTouchDown;
     private MoveAnimator animator;
     private int width;
+    private int height;
     private WindowManager windowManager;
     private boolean shouldStickToWall = true;
 
@@ -117,7 +123,6 @@ public class BubbleLayout extends BubbleBaseLayout {
                     if (System.currentTimeMillis() - lastTouchDown < TOUCH_TIME_THRESHOLD) {
                         if (onBubbleClickListener != null) {
                             onBubbleClickListener.onBubbleClick(this);
-                            changeImageView();
                         }
                     } else {
                         goToWall();
@@ -162,7 +167,7 @@ public class BubbleLayout extends BubbleBaseLayout {
         Point size = new Point();
         display.getSize(size);
         width = (size.x - this.getWidth());
-
+        height = (size.y - this.getHeight());
     }
 
     public void changeImageView() {
@@ -202,6 +207,10 @@ public class BubbleLayout extends BubbleBaseLayout {
             float nearestXWall = getViewParams().x >= middle ? width : 0;
             animator.start(nearestXWall, getViewParams().y);
         }
+    }
+
+    public void goToBottom() {
+        animator.start(width / 2, height);
     }
 
     private void move(float deltaX, float deltaY) {
