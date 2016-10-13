@@ -134,7 +134,7 @@ public class BaseBubblesService extends Service {
     WindowManager.LayoutParams buildLayoutParamsForInfo() {
         DisplayMetrics dM = Resources.getSystem().getDisplayMetrics();
         int width = dM.widthPixels - dpToPx(16, dM.density);
-        int height = dpToPx(328, dM.density);
+        int height = dM.heightPixels - dpToPx(16 + 24, dM.density);//margin plus status bar
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 width,
                 height,
@@ -142,8 +142,9 @@ public class BaseBubblesService extends Service {
                 FLAG_NOT_FOCUSABLE | FLAG_SHOW_WHEN_LOCKED,
                 TRANSLUCENT
         );
-        params.gravity = Gravity.TOP;
+        params.gravity = Gravity.TOP | Gravity.START;
         params.y = dpToPx(8, dM.density);
+        params.x = dpToPx(8, dM.density);
         return params;
     }
 
