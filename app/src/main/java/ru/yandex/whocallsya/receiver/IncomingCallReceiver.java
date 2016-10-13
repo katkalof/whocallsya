@@ -25,7 +25,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
         i.putExtra(PHONE_NUMBER, intent.getStringExtra(EXTRA_INCOMING_NUMBER));
         Log.d("whocallsya", "IncomingCallReceiver "
                 + intent.getStringExtra(EXTRA_INCOMING_NUMBER) + " "
-                + intent.getStringExtra(EXTRA_INCOMING_NUMBER));
+                + intent.getStringExtra(EXTRA_STATE));
         context.startService(i);
     }
 }

@@ -1,12 +1,17 @@
 package ru.yandex.whocallsya.service;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.CallLog;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import java.util.WeakHashMap;
 
@@ -14,6 +19,7 @@ import ru.yandex.whocallsya.R;
 import ru.yandex.whocallsya.bubble.BubbleLayout;
 import ru.yandex.whocallsya.bubble.BubblesLayoutCoordinator;
 import ru.yandex.whocallsya.bubble.InformingLayout;
+import rx.subjects.PublishSubject;
 
 import static android.telephony.TelephonyManager.EXTRA_STATE;
 
@@ -38,11 +44,7 @@ public class CockyBubblesService extends BaseBubblesService {
             } else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
                 removeBubble(phoneNumber);
             } else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                // TODO: 12.10.2016  проверка на пропущеный вызов - тогда ничего не делаем
-                boolean missedCall = false;
-                if (!missedCall) {
-                    removeBubble(phoneNumber);
-                }
+                removeBubbleIfMissed(phoneNumber);
             }
             return START_NOT_STICKY;
         }
@@ -108,6 +110,24 @@ public class CockyBubblesService extends BaseBubblesService {
                 stopSelf();
             }
         });
+    }
+
+    private void removeBubbleIfMissed(String phoneNumber) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Для правильной работы приложения АОН необходимо разрешить" +
+                    " доступ к Вашим последним вызовам", Toast.LENGTH_LONG).show();
+        } else {
+            PublishSubject<String> subject = PublishSubject.create();
+            MissedCallContentObserver h = new MissedCallContentObserver(new Handler(), getContentResolver(), phoneNumber, subject);
+            subject.subscribe(s -> {
+                if (s.equals("Incoming")) {
+                    removeBubble(phoneNumber);
+                }
+                getContentResolver().unregisterContentObserver(h);
+                subject.onCompleted();
+            });
+            getContentResolver().registerContentObserver(CallLog.Calls.CONTENT_URI, true, h);
+        }
     }
 
     public void changeLastBubble() {
